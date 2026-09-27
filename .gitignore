@@ -35,3 +35,7 @@ results/*/strong*.pkl
 
 # ---- 微调训练输出（train_visdrone.py） ----
 runs_ft/
+
+# ---- Gradio 运行时缓存与备份文件 ----
+.gradio/
+*.bak-*

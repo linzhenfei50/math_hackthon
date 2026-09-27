@@ -67,7 +67,7 @@ SAHI 对整张图均匀切片、每片都跑一次检测器；Glance-SAHI 先把
 `gain_by_size.py` 从另一端交叉验证（`results/dota15/gain_by_size_theta0.9.csv`，"找到"= 同类检测框与真值 IoU ≥ 0.5）：SAHI 相对整图推理多找回 **6781 个**目标，θ=0.9 的 Glance 保住其中 **85.7%**（θ=0.5 放宽到 93.1%）。保住率的最低点落在最难一档（8–16 px 92.6% → 4–8 px 83.2% → <4 px 64.9%），与上面覆盖率的排序一致。值得注意的是**增益的分布**：占全部增益 41.2% 的 8–16 px 那一档，恰好也是保住率最高的一档——SAHI 最有用处的目标，Glance 基本都留住了。
 
 交互 Demo（Gradio），同一张图并排跑 SAHI / 手工门 / 可学习路由，显示真实切片数、耗时与提速（不是模拟）：
-- `app.py`：默认加载最新微调模型 `weights/yolo11s-visdrone-ft.pt` + `results/visdrone_ft/router_ft.json`，默认站在路由 top-50% 预算这个卖点上；`--weights yolo11s.pt` 切回 COCO 零训练模型，`--dataset dota` 切到 DOTA 的路由器与示例图。
+- `app.py`：默认加载最新微调模型 `weights/yolo11s-visdrone-ft.pt` + `results/visdrone_ft/router_ft.json`，默认站在路由 top-50% 预算这个卖点上。核心交互围绕切片 AP、提速与减少切片数适配：拖动预算 ρ 只重跑路由器（SAHI / 手工门沿用缓存），切片数 / 提速 / 单图 AP 实时更新，页面内置离线 AP–预算曲线并标出建议预算 ρ*；`--weights yolo11s.pt` 切回 COCO 零训练模型，`--dataset dota` 切到 DOTA 的路由器与示例图。
 - `demo_sahi_vs_glance.py`：现场宣讲版，SAHI 全切 / Glance-SAHI / 扫视打分三联画 + 检测器预设（COCO / 微调 / OBB）。
 
 ## 仓库里有什么 / 需要自己准备什么
@@ -250,7 +250,8 @@ $py = ".\.venv\Scripts\python.exe"
 ```
 
 上传一张图（或点示例），同屏对比 SAHI 全切和 Glance-SAHI 选片：切片数、检测框数、单图耗时，外加每片的扫视打分 S(k)。
-可切换三种检测器预设（COCO 零训练 / VisDrone 微调 / DOTA 官方 OBB），θ、λ 可拖动。耗时是本机单次实测，每种图像尺寸第一次运行前会先完整预热一遍。
+核心旋钮是切片预算 ρ：拖动后只重跑路由器（几秒），即时看"省多少切片 ↔ AP / 提速"的权衡，并对照离线 AP–预算曲线上的建议预算 ρ*。
+单图 AP 复用本轮推理结果计算（COCOeval），不再额外跑推理；θ、λ 等对照参数收进折叠区。耗时是本机单次实测，每种图像尺寸第一次运行前会先完整预热一遍。
 
 ## 在自己的代码里使用
 
